@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Code Editor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #b3b4b7;
+      color: #e5e7eb;
+    }
+    header {
+      padding: 12px 20px;
+      background: #020617;
+      border-bottom: 1px solid #1e293b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+    header span {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+    main {
+      padding: 16px;
+      display: grid;
+      grid-template-columns: minmax(280px, 1.1fr) minmax(380px, 1.4fr);
+      gap: 16px;
+    }
+    .panel {
+      background: #020617;
+      border: 1px solid #1f2937;
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+    }
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      color: #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .panel h2 span {
+      font-size: 11px;
+      color: #9ca3af;
+      font-weight: normal;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      margin: 6px 0 4px;
+      color: #9ca3af;
+    }
+    input, select, textarea, button {
+      font-family: inherit;
+      font-size: 13px;
+    }
+    input, select, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      background: #020617;
+      color: #e5e7eb;
+      border: 1px solid #374151;
+      border-radius: 6px;
+      padding: 6px 8px;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 1px rgba(59,130,246,0.4);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+      font-family: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.4;
+      white-space: pre;
+    }
+    .btn-row {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+    }
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 7px 16px;
+      cursor: pointer;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.1s;
+    }
+    button:active {
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+    #runBtn {
+      background: #22c55e;
+      color: #022c22;
+      box-shadow: 0 4px 10px rgba(34,197,94,0.4);
+    }
+    #runBtn:hover {
+      background: #16a34a;
+    }
+    #submitBtn {
+      background: #3b82f6;
+      color: #eff6ff;
+      box-shadow: 0 4px 10px rgba(59,130,246,0.4);
+    }
+    #submitBtn:hover {
+      background: #2563eb;
+    }
+    #status {
+      font-size: 12px;
+      margin-top: 4px;
+      color: #9ca3af;
+    }
+    #output {
+      background: #020617;
+      border-radius: 6px;
+      border: 1px solid #374151;
+      padding: 8px;
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      max-height: 260px;
+      overflow: auto;
+    }
+    #problemStatement {
+      font-size: 13px;
+      white-space: pre-wrap;
+      line-height: 1.4;
+      max-height: 350px;
+      overflow: auto;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid #374151;
+      color: #9ca3af;
+    }
+    .pill span {
+      color: #f97316;
+    }
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>Code Editor</h1>
+
+        </div>
+        <div class="pill" style=""display:none>
+            Mode: <span id="currentMode">–</span>
+        </div>
+    </header>
+
+    <main>
+
+    <section class="panel">
+        <h2>
+            Problem
+            <span id="problemMeta"></span>
+        </h2>
+
+        <label for="username">Username</label>
+        <input id="username" placeholder="Enter your handle (use login mech later)" />
+
+        <label for="problemSelect">Select Problem</label>
+        <select id="problemSelect"></select>
+
+        <div id="problemStatement" style="margin-top:10px; border-top:1px solid #1f2937; padding-top:8px;">
+            Loading problems…
+        </div>
+
+        <label for="input" style="margin-top:12px;">Custom Input (for RUN in browser)</label>
+        <textarea id="input" placeholder="Example:&#10;3 5"></textarea>
+    </section>
+
+    <section class="panel">
+        <h2>
+            Code
+            <span>Language: C++17</span>
+        </h2>
+
+        <label>Source Code</label>
+        <div id="editor" style="height: 350px; width: 100%; border:1px solid #374151;"></div>
+
+
+        <div class="btn-row">
+            <button id="runBtn">RUN (Hybrid)</button>
+            <button id="submitBtn">SUBMIT (Judge)</button>
+        </div>
+
+        <div id="status"></div>
+        <label style="margin-top:10px;">Output / Verdict</label>
+        <pre id="output"></pre>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

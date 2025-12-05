@@ -1,0 +1,7 @@
+{
+    "id": "B",
+    "title": "Sending a Sequence Over the Network",
+    "timeLimitMs": 2000,
+    "memoryLimitMb": 1024,
+    "statement": "somthing somthing"
+}
